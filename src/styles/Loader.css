@@ -1,0 +1,16 @@
+.loader {
+    margin: 20px 0;
+  }
+  
+  .loading-bar {
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    animation: loading 2s infinite;
+  }
+  
+  @keyframes loading {
+    0% { background-position: 0 0; }
+    100% { background-position: 100% 0; }
+  }
+  
