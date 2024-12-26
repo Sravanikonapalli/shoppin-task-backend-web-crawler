@@ -1,20 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product URL Crawler</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        input, button { padding: 10px; margin: 10px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 5px 0; }
+        .failed { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+
+    <h1>Enter Website URL to Crawl</h1>
+    
+    <input type="text" id="urlInput" placeholder="Enter website URL" />
+    <button id="crawlButton">Crawl</button>
+
+    <h2>URLs</h2>
+    <ul id="urlHistory">
+        <!-- Dynamic list of URLs will appear here -->
+    </ul>
+
+    <h2>Results</h2>
+    <div id="result"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Function to update the list of previously entered URLs
+            function updateUrlHistory(urlHistory) {
+                const $urlHistory = $('#urlHistory');
+                $urlHistory.empty(); // Clear previous list
+                urlHistory.forEach(function(item) {
+                    const statusClass = item.success ? 'success' : 'failed';
+                    const statusText = item.success ? 'Crawled Successfully' : 'Crawl Failed';
+                    $urlHistory.append(`<li class="${statusClass}">
+                        <a href="${item.url}" target="_blank">${item.url}</a> - ${statusText}
+                    </li>`);
+                });
+            }
+
+            // When the "Crawl" button is clicked
+            $('#crawlButton').click(function() {
+                const url = $('#urlInput').val().trim();
+                if (url) {
+                    $('#result').html('<p>Loading...</p>'); // Show loading state
+
+                    $.post('/crawl', { url: url }, function(data) {
+                        if (data.productUrls && data.productUrls.length > 0) {
+                            let html = '<h3>Product URLs:</h3><ul>';
+                            data.productUrls.forEach(function(url) {
+                                html += `<li><a href="${url}" target="_blank">${url}</a></li>`;
+                            });
+                            html += '</ul>';
+                            $('#result').html(html);
+                        } else {
+                            $('#result').html('<p>No product URLs found.</p>');
+                        }
+
+                        // Update the previously entered URLs list
+                        updateUrlHistory(data.urlHistory);
+                    }).fail(function() {
+                        $('#result').html('<p>Failed to crawl the website. Please try again.</p>');
+                    });
+                } else {
+                    $('#result').html('<p>Please enter a valid URL.</p>');
+                }
+            });
+
+            // Initialize the page with some URLs (to test multiple URLs from the start)
+            const exampleUrls = [
+                "https://www.ebay.com/sch/i.html?_nkw=laptops",
+                "https://www.ebay.com/sch/i.html?_nkw=smartphones",
+                "https://www.amazon.com/s?k=laptop",
+                "https://www.bestbuy.com/site/searchpage.jsp?st=laptops",
+                "https://www.newegg.com/p/N82E16834152789",
+                "https://www.walmart.com/search/?query=tablets",
+                "https://www.target.com/s?searchTerm=headphones",
+                "https://www.flipkart.com/search?q=tv",
+                "https://www.aliexpress.com/wholesale?SearchText=laptop",
+                "https://www.overstock.com/search?keywords=laptop"
+            ];
+
+            // Display example URLs
+            exampleUrls.forEach(function(url) {
+                $('#urlHistory').append(`<li><a href="${url}" target="_blank">${url}</a></li>`);
+            });
+        });
+    </script>
+
+</body>
 </html>
